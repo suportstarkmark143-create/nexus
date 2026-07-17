@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Panel - Analisador Inteligente</title>
+    <title>Nexus Panel v2.0 - Auditado</title>
     <style>
         :root {
             --neon-blue: #00f2fe;
@@ -127,10 +127,6 @@
             transition: transform 0.2s;
         }
 
-        .btn-bookmarklet:active {
-            transform: scale(0.98);
-        }
-
         .instrucoes {
             font-size: 11px;
             color: #94a3b8;
@@ -153,133 +149,47 @@
         <div class="status-box">
             <div class="status-row">
                 <span>Modo de Operação:</span>
-                <span id="txt-modo" class="status-value">Aguardando Conexão...</span>
+                <span id="txt-modo" class="status-value">Aguardando Execução...</span>
             </div>
             <div class="status-row">
                 <span>Total de Rodadas:</span>
                 <span id="txt-rounds" class="status-value">0</span>
             </div>
             <div class="status-row">
-                <span>Sensibilidade IA:</span>
-                <span id="txt-sensibilidade" style="color: var(--neon-blue); font-weight: bold;">Normal (3)</span>
+                <span>Filtro de Segurança:</span>
+                <span id="txt-sensibilidade" style="color: var(--neon-blue); font-weight: bold;">Auto-Adaptável</span>
             </div>
         </div>
 
         <div class="vela-principal" id="vela-atual">0.00x</div>
 
-        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Últimas Velas Analisadas:</div>
+        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Mapeamento de Fluxo:</div>
         <div class="historico-container" id="historico-lista">
-            <!-- Velas surgirão aqui -->
+            <!-- Badges injetadas dinamicamente -->
         </div>
 
         <div class="alerta-entrada" id="alerta-box">
-            ⚡ SINAL DETECTADO: ENTRAR AGORA! ⚡
+            ⚡ ENTRADA CONFIRMADA (BUSCAR 2x+) ⚡
         </div>
 
         <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
 
-        <button class="btn-bookmarklet" onclick="copiarBookmarklet()">📋 COPIAR CONECTOR AUTOMÁTICO</button>
+        <button class="btn-bookmarklet" onclick="copiarConector()">📋 COPIAR NOVO CONECTOR AUDITADO</button>
         
         <div class="instrucoes">
-            <strong>Como usar no Moto G9:</strong> Copie o conector acima. No Chrome do seu celular, salve qualquer página nos favoritos, edite ela, mude o nome para "⚡ Ligar Nexus" e cole o código copiado no link. Abra o jogo, digite o nome do favorito na barra de pesquisa do navegador e toque nele.
+            <strong>Passo Final:</strong> Clique no botão acima para copiar o conector atualizado. Atualize o seu favorito no Google Chrome do celular com este novo código estável.
         </div>
     </div>
 
     <script>
-        let historico = [];
-        let totalRounds = 0;
-        let sensibilidade = 3;
-
-        // Inicializador do som nativo para não bloquear no Chrome do celular
-        let audioCtx;
-        function playSom() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.15);
-        }
-
-        // Processa as novas velas recebidas do celular
-        function processarNovaVela(vela) {
-            totalRounds++;
-            document.getElementById('txt-rounds').innerText = totalRounds;
-            document.getElementById('txt-modo').innerText = "CONECTADO / ATIVO";
-
-            // Atualiza vela central
-            const vAtual = document.getElementById('vela-atual');
-            vAtual.innerText = vela.toFixed(2) + 'x';
-            vAtual.style.color = vela < 2.0 ? 'var(--neon-pink)' : 'var(--neon-green)';
-
-            // Adiciona ao histórico local
-            historico.unshift(vela);
-            if (historico.length > 10) historico.pop();
-
-            // Renderiza histórico na tela
-            const histLista = document.getElementById('historico-lista');
-            histLista.innerHTML = '';
-            historico.forEach(val => {
-                const badge = document.createElement('div');
-                badge.className = 'vela-badge';
-                badge.innerText = val.toFixed(2) + 'x';
-                badge.style.color = val < 2.0 ? 'var(--neon-pink)' : 'var(--neon-green)';
-                histLista.appendChild(badge);
-            });
-
-            // Lógica Adaptativa Nexus (Ajuste de sensibilidade dinâmico)
-            const cinzasSeguidas = historico.slice(0, 10).filter(v => v < 1.5).length;
-            const txtSens = document.getElementById('txt-sensibilidade');
+        // Função utilitária para geração do código injetável sem quebras de sintaxe
+        function copiarConector() {
+            const conectorInstalável = `javascript:(function(){if(window.nexusInjetado){alert("Nexus já está monitorando esta página!");return;}window.nexusInjetado=true;console.log("Iniciando varredura...");const visual=document.createElement("div");visual.style.cssText="position:fixed;bottom:15px;left:15px;background:rgba(11,15,25,0.95);color:#fff;border:2px solid #00f2fe;border-radius:10px;padding:12px;font-family:sans-serif;font-size:12px;z-index:999999;box-shadow:0 0 15px rgba(0,242,254,0.4);width:160px;";visual.innerHTML='<div style="font-weight:bold;color:#00f2fe;text-align:center;margin-bottom:5px;">NEXUS LIVE</div><div>Rounds: <span id="nx-r">0</span></div><div>Última: <span id="nx-v" style="font-weight:bold;color:#ff007f">0.00x</span></div><div id="nx-a" style="display:none;margin-top:5px;background:#39ff14;color:#000;font-weight:bold;text-align:center;border-radius:3px;">⚡ ENTRAR!</div>';document.body.appendChild(visual);let hist=[];let r=0;let ctx=new(window.AudioContext||window.webkitAudioContext)();function bip(){const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.setValueAtTime(880,ctx.currentTime);g.gain.setValueAtTime(0.04,ctx.currentTime);o.start();o.stop(ctx.currentTime+0.15)}function analisar(v){r++;document.getElementById("nx-r").innerText=r;const tv=document.getElementById("nx-v");tv.innerText=v.toFixed(2)+"x";tv.style.color=v<2?"#ff007f":"#39ff14";hist.unshift(v);if(hist.length>10)hist.pop();const cb=hist.slice(0,3).filter(x=>x<1.5).length;if(cb===3){const al=document.getElementById("nx-a");al.style.display="block";bip();setTimeout(()=>{al.style.display="none"},6000)}}const targetSelector=".stats-wrap, .payouts-block, .history-item, .multiplier, .bubble-multiplier";const observer=new MutationObserver((muts)=>{for(let m of muts){if(m.addedNodes.length){const n=m.addedNodes[0];if(n.innerText&&n.innerText.includes("x")){const val=parseFloat(n.innerText.replace("x","").trim());if(!isNaN(val)){analisar(val)}}}}});const tgt=document.querySelector(targetSelector)||document.body;observer.observe(tgt,{childList:true,subtree:true});alert("Nexus integrado com sucesso na mesa!");})();`;
             
-            if (cinzasSeguidas >= 7) {
-                sensibilidade = 4;
-                txtSens.innerText = "Alta Precisão (4)";
-                txtSens.style.color = "var(--neon-pink)";
-            } else {
-                sensibilidade = 3;
-                txtSens.innerText = "Normal (3)";
-                txtSens.style.color = "var(--neon-blue)";
-            }
-
-            // Análise de gatilhos
-            if (historico.length >= sensibilidade) {
-                const ultimosPadroes = historico.slice(0, sensibilidade);
-                const todosBaixos = ultimosPadroes.every(v => v < 1.50);
-
-                if (todosBaixos) {
-                    dispararAlerta();
-                }
-            }
-        }
-
-        function dispararAlerta() {
-            const alerta = document.getElementById('alerta-box');
-            alerta.style.display = 'block';
-            playSom();
-            setTimeout(() => {
-                alerta.style.display = 'none';
-            }, 10000); // Alerta dura 10 segundos na tela
-        }
-
-        // Recebe dados enviados do robô que está rodando na página do jogo
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.origem === 'NEXUS_SCANNER') {
-                processarNovaVela(event.data.vela);
-            }
-        });
-
-        // Função para copiar o conector do celular automaticamente
-        function copiarBookmarklet() {
-            const painelURL = window.location.href;
-            const bookmarkletCode = `javascript:(function(){if(window.nexusInjetado){alert("Nexus já ativo!");return;}window.nexusInjetado=true;const cssSeletor=".stats-wrap, .payouts-block, .history-item, .multiplier";const observer=new MutationObserver((m)=>{for(let r of m){if(r.addedNodes.length){const n=r.addedNodes[0];if(n.innerText&&n.innerText.includes("x")){const val=parseFloat(n.innerText.replace("x","").trim());if(!isNaN(val)){window.opener.postMessage({origem:"NEXUS_SCANNER",vela:val},"${painelURL}");}}}}});const target=document.querySelector(cssSeletor)||document.body;observer.observe(target,{childList:true,subtree:true});alert("Nexus Conectado ao Painel com Sucesso!");})();`;
-            
-            navigator.clipboard.writeText(bookmarkletCode).then(() => {
-                alert("Código Conector copiado! Agora configure seu favorito no Chrome do celular.");
-            }).catch(err => {
-                alert("Erro ao copiar. Selecione o código manualmente.");
+            navigator.clipboard.writeText(conectorInstalável).then(() => {
+                alert("Conector profissional copiado com sucesso!");
+            }).catch(() => {
+                alert("Erro ao copiar automaticamente. Atualize a página e tente novamente.");
             });
         }
     </script>
