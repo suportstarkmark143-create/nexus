@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Panel - Analisador Inteligente</title>
+    <style>
+        :root {
+            --neon-blue: #00f2fe;
+            --neon-pink: #ff007f;
+            --neon-green: #39ff14;
+            --dark-bg: #0b0f19;
+            --panel-bg: rgba(16, 22, 37, 0.95);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--panel-bg);
+            border: 2px solid var(--neon-blue);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+            margin-top: 0;
+            letter-spacing: 2px;
+        }
+
+        .status-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .status-value {
+            font-weight: bold;
+            color: var(--neon-green);
+        }
+
+        .vela-principal {
+            font-size: 48px;
+            text-align: center;
+            font-weight: bold;
+            margin: 20px 0;
+            color: var(--neon-pink);
+            text-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .historico-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            scrollbar-width: none;
+        }
+
+        .historico-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .vela-badge {
+            background: #1e293b;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            min-width: 45px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .alerta-entrada {
+            background: rgba(57, 255, 20, 0.15);
+            border: 2px solid var(--neon-green);
+            color: var(--neon-green);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            display: none;
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
+        }
+
+        .btn-bookmarklet {
+            width: 100%;
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #000;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: transform 0.2s;
+        }
+
+        .btn-bookmarklet:active {
+            transform: scale(0.98);
+        }
+
+        .instrucoes {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>NEXUS PANEL</h1>
+        
+        <div class="status-box">
+            <div class="status-row">
+                <span>Modo de Operação:</span>
+                <span id="txt-modo" class="status-value">Aguardando Conexão...</span>
+            </div>
+            <div class="status-row">
+                <span>Total de Rodadas:</span>
+                <span id="txt-rounds" class="status-value">0</span>
+            </div>
+            <div class="status-row">
+                <span>Sensibilidade IA:</span>
+                <span id="txt-sensibilidade" style="color: var(--neon-blue); font-weight: bold;">Normal (3)</span>
+            </div>
+        </div>
+
+        <div class="vela-principal" id="vela-atual">0.00x</div>
+
+        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Últimas Velas Analisadas:</div>
+        <div class="historico-container" id="historico-lista">
+            <!-- Velas surgirão aqui -->
+        </div>
+
+        <div class="alerta-entrada" id="alerta-box">
+            ⚡ SINAL DETECTADO: ENTRAR AGORA! ⚡
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
+
+        <button class="btn-bookmarklet" onclick="copiarBookmarklet()">📋 COPIAR CONECTOR AUTOMÁTICO</button>
+        
+        <div class="instrucoes">
+            <strong>Como usar no Moto G9:</strong> Copie o conector acima. No Chrome do seu celular, salve qualquer página nos favoritos, edite ela, mude o nome para "⚡ Ligar Nexus" e cole o código copiado no link. Abra o jogo, digite o nome do favorito na barra de pesquisa do navegador e toque nele.
+        </div>
+    </div>
+
+    <script>
+        let historico = [];
+        let totalRounds = 0;
+        let sensibilidade = 3;
+
+        // Inicializador do som nativo para não bloquear no Chrome do celular
+        let audioCtx;
+        function playSom() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15);
+        }
+
+        // Processa as novas velas recebidas do celular
+        function processarNovaVela(vela) {
+            totalRounds++;
+            document.getElementById('txt-rounds').innerText = totalRounds;
+            document.getElementById('txt-modo').innerText = "CONECTADO / ATIVO";
+
+            // Atualiza vela central
+            const vAtual = document.getElementById('vela-atual');
+            vAtual.innerText = vela.toFixed(2) + 'x';
+            vAtual.style.color = vela < 2.0 ? 'var(--neon-pink)' : 'var(--neon-green)';
+
+            // Adiciona ao histórico local
+            historico.unshift(vela);
+            if (historico.length > 10) historico.pop();
+
+            // Renderiza histórico na tela
+            const histLista = document.getElementById('historico-lista');
+            histLista.innerHTML = '';
+            historico.forEach(val => {
+                const badge = document.createElement('div');
+                badge.className = 'vela-badge';
+                badge.innerText = val.toFixed(2) + 'x';
+                badge.style.color = val < 2.0 ? 'var(--neon-pink)' : 'var(--neon-green)';
+                histLista.appendChild(badge);
+            });
+
+            // Lógica Adaptativa Nexus (Ajuste de sensibilidade dinâmico)
+            const cinzasSeguidas = historico.slice(0, 10).filter(v => v < 1.5).length;
+            const txtSens = document.getElementById('txt-sensibilidade');
+            
+            if (cinzasSeguidas >= 7) {
+                sensibilidade = 4;
+                txtSens.innerText = "Alta Precisão (4)";
+                txtSens.style.color = "var(--neon-pink)";
+            } else {
+                sensibilidade = 3;
+                txtSens.innerText = "Normal (3)";
+                txtSens.style.color = "var(--neon-blue)";
+            }
+
+            // Análise de gatilhos
+            if (historico.length >= sensibilidade) {
+                const ultimosPadroes = historico.slice(0, sensibilidade);
+                const todosBaixos = ultimosPadroes.every(v => v < 1.50);
+
+                if (todosBaixos) {
+                    dispararAlerta();
+                }
+            }
+        }
+
+        function dispararAlerta() {
+            const alerta = document.getElementById('alerta-box');
+            alerta.style.display = 'block';
+            playSom();
+            setTimeout(() => {
+                alerta.style.display = 'none';
+            }, 10000); // Alerta dura 10 segundos na tela
+        }
+
+        // Recebe dados enviados do robô que está rodando na página do jogo
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.origem === 'NEXUS_SCANNER') {
+                processarNovaVela(event.data.vela);
+            }
+        });
+
+        // Função para copiar o conector do celular automaticamente
+        function copiarBookmarklet() {
+            const painelURL = window.location.href;
+            const bookmarkletCode = `javascript:(function(){if(window.nexusInjetado){alert("Nexus já ativo!");return;}window.nexusInjetado=true;const cssSeletor=".stats-wrap, .payouts-block, .history-item, .multiplier";const observer=new MutationObserver((m)=>{for(let r of m){if(r.addedNodes.length){const n=r.addedNodes[0];if(n.innerText&&n.innerText.includes("x")){const val=parseFloat(n.innerText.replace("x","").trim());if(!isNaN(val)){window.opener.postMessage({origem:"NEXUS_SCANNER",vela:val},"${painelURL}");}}}}});const target=document.querySelector(cssSeletor)||document.body;observer.observe(target,{childList:true,subtree:true});alert("Nexus Conectado ao Painel com Sucesso!");})();`;
+            
+            navigator.clipboard.writeText(bookmarkletCode).then(() => {
+                alert("Código Conector copiado! Agora configure seu favorito no Chrome do celular.");
+            }).catch(err => {
+                alert("Erro ao copiar. Selecione o código manualmente.");
+            });
+        }
+    </script>
+</body>
+</html>
