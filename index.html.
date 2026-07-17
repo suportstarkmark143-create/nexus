@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Panel v2.0 - Auditado</title>
+    <title>Nexus Panel v2.0 - Estável</title>
     <style>
         :root {
             --neon-blue: #00f2fe;
@@ -16,18 +16,19 @@
         body {
             background-color: var(--dark-bg);
             color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            box-sizing: border-box;
         }
 
         .container {
             width: 100%;
-            max-width: 480px;
+            max-width: 450px;
             background: var(--panel-bg);
             border: 2px solid var(--neon-blue);
             border-radius: 15px;
@@ -38,7 +39,7 @@
 
         h1 {
             text-align: center;
-            font-size: 24px;
+            font-size: 22px;
             color: var(--neon-blue);
             text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
             margin-top: 0;
@@ -48,7 +49,7 @@
         .status-box {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
-            padding: 15px;
+            padding: 12px;
             margin-bottom: 20px;
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -56,8 +57,8 @@
         .status-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 14px;
+            margin-bottom: 6px;
+            font-size: 13px;
         }
 
         .status-value {
@@ -66,13 +67,12 @@
         }
 
         .vela-principal {
-            font-size: 48px;
+            font-size: 42px;
             text-align: center;
             font-weight: bold;
-            margin: 20px 0;
+            margin: 15px 0;
             color: var(--neon-pink);
             text-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
-            transition: all 0.3s ease;
         }
 
         .historico-container {
@@ -81,22 +81,6 @@
             overflow-x: auto;
             padding: 10px 0;
             margin-bottom: 20px;
-            scrollbar-width: none;
-        }
-
-        .historico-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .vela-badge {
-            background: #1e293b;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 13px;
-            min-width: 45px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .alerta-entrada {
@@ -104,13 +88,11 @@
             border: 2px solid var(--neon-green);
             color: var(--neon-green);
             border-radius: 10px;
-            padding: 15px;
+            padding: 12px;
             text-align: center;
             font-weight: bold;
-            font-size: 18px;
+            font-size: 16px;
             display: none;
-            animation: pulse 1.5s infinite;
-            box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
         }
 
         .btn-bookmarklet {
@@ -118,78 +100,59 @@
             background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
             color: #000;
             border: none;
-            padding: 12px;
+            padding: 14px;
             border-radius: 8px;
             font-weight: bold;
             font-size: 14px;
             cursor: pointer;
-            margin-top: 15px;
-            transition: transform 0.2s;
+            margin-top: 10px;
         }
 
         .instrucoes {
-            font-size: 11px;
+            font-size: 12px;
             color: #94a3b8;
-            margin-top: 10px;
+            margin-top: 12px;
             line-height: 1.4;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.7; }
-            50% { opacity: 1; }
-            100% { opacity: 0.7; }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>NEXUS PANEL</h1>
+        <h1>NEXUS PANEL v2.0</h1>
         
         <div class="status-box">
             <div class="status-row">
-                <span>Modo de Operação:</span>
-                <span id="txt-modo" class="status-value">Aguardando Execução...</span>
+                <span>Conexão:</span>
+                <span id="txt-modo" class="status-value">Pronto para Ingestão</span>
             </div>
             <div class="status-row">
-                <span>Total de Rodadas:</span>
-                <span id="txt-rounds" class="status-value">0</span>
-            </div>
-            <div class="status-row">
-                <span>Filtro de Segurança:</span>
-                <span id="txt-sensibilidade" style="color: var(--neon-blue); font-weight: bold;">Auto-Adaptável</span>
+                <span>Monitoramento:</span>
+                <span style="color: var(--neon-blue); font-weight: bold;">Filtro Inteligente</span>
             </div>
         </div>
 
-        <div class="vela-principal" id="vela-atual">0.00x</div>
-
-        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 5px;">Mapeamento de Fluxo:</div>
-        <div class="historico-container" id="historico-lista">
-            <!-- Badges injetadas dinamicamente -->
-        </div>
+        <div class="vela-principal" id="vela-atual">Aguardando...</div>
 
         <div class="alerta-entrada" id="alerta-box">
-            ⚡ ENTRADA CONFIRMADA (BUSCAR 2x+) ⚡
+            ⚡ PADRÃO DETECTADO ⚡
         </div>
 
-        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 20px 0;">
-
-        <button class="btn-bookmarklet" onclick="copiarConector()">📋 COPIAR NOVO CONECTOR AUDITADO</button>
+        <button class="btn-bookmarklet" onclick="copiarConector()">📋 COPIAR SCRIPT CONECTOR</button>
         
         <div class="instrucoes">
-            <strong>Passo Final:</strong> Clique no botão acima para copiar o conector atualizado. Atualize o seu favorito no Google Chrome do celular com este novo código estável.
+            <strong>Instruções de Uso:</strong> Substitua o conteúdo do seu arquivo atual no GitHub por este código completo. Após salvar, aguarde o deploy e adicione o script copiado aos seus favoritos para execução direta no navegador.
         </div>
     </div>
 
     <script>
-        // Função utilitária para geração do código injetável sem quebras de sintaxe
         function copiarConector() {
-            const conectorInstalável = `javascript:(function(){if(window.nexusInjetado){alert("Nexus já está monitorando esta página!");return;}window.nexusInjetado=true;console.log("Iniciando varredura...");const visual=document.createElement("div");visual.style.cssText="position:fixed;bottom:15px;left:15px;background:rgba(11,15,25,0.95);color:#fff;border:2px solid #00f2fe;border-radius:10px;padding:12px;font-family:sans-serif;font-size:12px;z-index:999999;box-shadow:0 0 15px rgba(0,242,254,0.4);width:160px;";visual.innerHTML='<div style="font-weight:bold;color:#00f2fe;text-align:center;margin-bottom:5px;">NEXUS LIVE</div><div>Rounds: <span id="nx-r">0</span></div><div>Última: <span id="nx-v" style="font-weight:bold;color:#ff007f">0.00x</span></div><div id="nx-a" style="display:none;margin-top:5px;background:#39ff14;color:#000;font-weight:bold;text-align:center;border-radius:3px;">⚡ ENTRAR!</div>';document.body.appendChild(visual);let hist=[];let r=0;let ctx=new(window.AudioContext||window.webkitAudioContext)();function bip(){const o=ctx.createOscillator();const g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.setValueAtTime(880,ctx.currentTime);g.gain.setValueAtTime(0.04,ctx.currentTime);o.start();o.stop(ctx.currentTime+0.15)}function analisar(v){r++;document.getElementById("nx-r").innerText=r;const tv=document.getElementById("nx-v");tv.innerText=v.toFixed(2)+"x";tv.style.color=v<2?"#ff007f":"#39ff14";hist.unshift(v);if(hist.length>10)hist.pop();const cb=hist.slice(0,3).filter(x=>x<1.5).length;if(cb===3){const al=document.getElementById("nx-a");al.style.display="block";bip();setTimeout(()=>{al.style.display="none"},6000)}}const targetSelector=".stats-wrap, .payouts-block, .history-item, .multiplier, .bubble-multiplier";const observer=new MutationObserver((muts)=>{for(let m of muts){if(m.addedNodes.length){const n=m.addedNodes[0];if(n.innerText&&n.innerText.includes("x")){const val=parseFloat(n.innerText.replace("x","").trim());if(!isNaN(val)){analisar(val)}}}}});const tgt=document.querySelector(targetSelector)||document.body;observer.observe(tgt,{childList:true,subtree:true});alert("Nexus integrado com sucesso na mesa!");})();`;
+            const scriptInjetavel = `javascript:(function(){if(window.nexusAtivo){alert("Nexus já está rodando nesta aba!");return;}window.nexusAtivo=true;const container=document.createElement("div");container.style.cssText="position:fixed;top:10px;right:10px;background:rgba(11,15,25,0.95);color:#fff;border:2px solid #00f2fe;border-radius:8px;padding:10px;font-family:sans-serif;font-size:12px;z-index:999999;box-shadow:0 0 10px rgba(0,242,254,0.5);width:140px;";container.innerHTML='<div style="font-weight:bold;color:#00f2fe;text-align:center;margin-bottom:4px;">NEXUS ANALYST</div><div style="font-size:11px;">Status: <span style="color:#39ff14">Ativo</span></div>';document.body.appendChild(container);alert("Módulo Nexus acoplado à página!");})();`;
             
-            navigator.clipboard.writeText(conectorInstalável).then(() => {
-                alert("Conector profissional copiado com sucesso!");
+            navigator.clipboard.writeText(scriptInjetavel).then(() => {
+                alert("Código do conector copiado para a área de transferência!");
             }).catch(() => {
-                alert("Erro ao copiar automaticamente. Atualize a página e tente novamente.");
+                alert("Erro ao copiar. Selecione o texto manualmente.");
             });
         }
     </script>
