@@ -3,137 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Panel v3.0 - Mobile Integrado</title>
+    <title>Nexus Autonomous System v4.5</title>
     <style>
         :root {
             --neon-blue: #00f2fe;
             --neon-pink: #ff007f;
             --neon-green: #39ff14;
             --dark-bg: #0b0f19;
-            --panel-bg: rgba(16, 22, 37, 0.95);
+            --panel-bg: rgba(16, 22, 37, 0.98);
         }
 
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
+            margin: 0; padding: 0; width: 100%; height: 100%;
             background-color: var(--dark-bg);
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            font-family: 'Segoe UI', Roboto, sans-serif; overflow: hidden;
+            display: flex; flex-direction: column;
         }
 
-        /* Painel Superior Flutuante */
         #nexus-overlay {
-            width: 100%;
-            background: var(--panel-bg);
+            width: 100%; background: var(--panel-bg);
             border-bottom: 2px solid var(--neon-blue);
-            padding: 10px;
-            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.2);
-            box-sizing: border-box;
-            z-index: 9999;
+            padding: 8px 12px; box-sizing: border-box; z-index: 9999;
         }
 
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .header-row { display: flex; justify-content: space-between; align-items: center; }
+        h1 { margin: 0; font-size: 14px; color: var(--neon-blue); letter-spacing: 1px; }
+        
+        .history-box {
+            display: flex; gap: 4px; background: rgba(0,0,0,0.3);
+            padding: 4px 8px; border-radius: 4px; font-size: 11px;
+        }
+        .hist-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot-low { background: #ff4757; }
+        .dot-high { background: var(--neon-green); }
+
+        #alert-box {
+            background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 6px; padding: 10px; text-align: center;
+            font-size: 13px; font-weight: bold; color: #aaa; margin-top: 6px;
+            transition: all 0.3s ease;
         }
 
-        h1 {
-            margin: 0;
-            font-size: 16px;
-            color: var(--neon-blue);
-            text-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
-            letter-spacing: 1px;
-        }
-
-        .status-badge {
-            font-size: 11px;
-            background: rgba(57, 255, 20, 0.1);
-            border: 1px solid var(--neon-green);
-            color: var(--neon-green);
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-weight: bold;
-        }
-
-        /* Área de Exibição do Jogo */
-        #game-container {
-            flex: 1;
-            width: 100%;
-            position: relative;
-            background: #000;
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Controle de URL para você mudar de site se quiser */
-        .url-bar {
-            display: flex;
-            gap: 5px;
-            margin-top: 8px;
-        }
-
-        .url-input {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            padding: 6px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-
-        .btn-load {
-            background: var(--neon-blue);
-            color: #000;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-        }
+        #game-container { flex: 1; width: 100%; background: #000; }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
+
+    <!-- Script oficial do Firebase para conexões em tempo real no Mobile -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body>
 
-    <!-- PAINEL NEXUS (Fica fixo no topo) -->
     <div id="nexus-overlay">
         <div class="header-row">
-            <h1>NEXUS MOBILE v3.0</h1>
-            <span class="status-badge">● MONITORATIVO</span>
+            <h1>NEXUS AUTO-ANALYSIS v4.5</h1>
+            <div class="history-box" id="history-container">
+                <span style="color:#666; font-size:10px; margin-right:4px;">HISTÓRICO:</span>
+            </div>
         </div>
-        
-        <div class="url-bar">
-            <input type="text" id="target-url" class="url-input" value="https://sortenabet.bet.br" placeholder="Digite a URL da bet...">
-            <button class="btn-load" onclick="carregarJogo()">ABRIR</button>
-        </div>
+        <div id="alert-box">📡 AGUARDANDO PRIMEIRAS VELAS DO CATALOGADOR...</div>
     </div>
 
-    <!-- JANELA DO JOGO (Carrega o site aqui dentro) -->
     <div id="game-container">
-        <iframe id="game-frame" src="https://sortenabet.bet.br"></iframe>
+        <iframe src="https://sortenabet.bet.br"></iframe>
     </div>
 
     <script>
-        function carregarJogo() {
-            let url = document.getElementById('target-url').value;
-            if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                url = 'https://' + url;
+        // Configuração do seu Banco de Dados (Firebase) com a sua URL real
+        const firebaseConfig = {
+            databaseURL: "https://nexus-painel-c9f5e-default-rtdb.firebaseio.com/"
+        };
+        
+        // Inicializa a conexão com o Firebase
+        firebase.initializeApp(firebaseConfig);
+        const dbRef = firebase.database().ref("ultimas_velas");
+        
+        // Fica ouvindo o banco em tempo real. Sempre que o TipMiner mandar uma vela nova, essa função roda na hora!
+        dbRef.on("value", (snapshot) => {
+            const dados = snapshot.val();
+            if(dados && dados.valor) {
+                processarNovaVelaDaAPI(parseFloat(dados.valor)); 
             }
-            document.getElementById('game-frame').src = url;
+        });
+
+        let historicoAutomatico = [];
+
+        function processarNovaVelaDaAPI(valorVela) {
+            // Define se a vela é alta (>= 2.00x) ou baixa (< 2.00x)
+            let tipo = (valorVela >= 2.00) ? 'alta' : 'baixa';
+            
+            // Mantém apenas as últimas 5 velas no painel visual para não poluir a tela do celular
+            if (historicoAutomatico.length >= 5) {
+                historicoAutomatico.shift();
+            }
+            historicoAutomatico.push(tipo);
+
+            atualizarPainelVisual();
+            executarAlgoritmoEstrategia();
         }
 
-        // Script de monitoramento interno simplificado para rodar direto no container
-        console.log("Nexus Core carregado no ambiente mobile.");
+        function atualizarPainelVisual() {
+            const container = document.getElementById('history-container');
+            container.innerHTML = '<span style="color:#666; font-size:10px; margin-right:4px;">HIST:</span>';
+            historicoAutomatico.forEach(item => {
+                const dot = document.createElement('div');
+                dot.className = `hist-dot dot-${item}`;
+                container.appendChild(dot);
+            });
+        }
+
+        function ejecutarAlgoritmoEstrategia() {
+            const alertBox = document.getElementById('alert-box');
+            
+            // Conta a sequência atual de velas baixas consecutivas
+            let baixasSeguidas = 0;
+            for(let i = historicoAutomatico.length - 1; i >= 0; i--) {
+                if(historicoAutomatico[i] === 'baixa') baixasSeguidas++;
+                else break;
+            }
+
+            // MOTOR DE DECISÃO AUTOMÁTICO (Roda direto no navegador do seu celular)
+            if (baixasSeguidas === 3) {
+                alertBox.style.background = "rgba(241, 196, 15, 0.1)";
+                alertBox.style.border = "1px solid #f1c40f";
+                alertBox.style.color = "#f1c40f";
+                alertBox.innerHTML = "⚠️ PADRÃO DETECTADO: 3 velas baixas seguidas. Atenção para a próxima rodada!";
+            } else if (baixasSeguidas >= 4) {
+                alertBox.style.background = "rgba(57, 255, 20, 0.15)";
+                alertBox.style.border = "1px solid var(--neon-green)";
+                alertBox.style.color = var(--neon-green);
+                alertBox.innerHTML = "🎯 ENTRADA CONFIRMADA: Padrão de quebra de sequência detectado. Buscar ≥ 2.00x!";
+            } else if (historicoAutomatico[historicoAutomatico.length - 1] === 'alta') {
+                alertBox.style.background = "rgba(0, 242, 254, 0.1)";
+                alertBox.style.border = "1px solid var(--neon-blue)";
+                alertBox.style.color = var(--neon-blue);
+                alertBox.innerHTML = "✅ VELA ALTA REGISTRADA. Monitorando próximo ciclo de análise.";
+            } else {
+                alertBox.style.background = "rgba(255, 255, 255, 0.03)";
+                alertBox.style.border = "1px dashed rgba(255, 255, 255, 0.2)";
+                alertBox.style.color = "#aaa";
+                alertBox.innerHTML = `📡 Analisando histórico... (${baixasSeguidas} velas baixas consecutivas)`;
+            }
+        }
     </script>
 </body>
 </html>
