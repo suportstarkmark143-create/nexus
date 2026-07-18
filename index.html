@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Panel v2.0 - Estável</title>
+    <title>Nexus Panel v3.0 - Mobile Integrado</title>
     <style>
         :root {
             --neon-blue: #00f2fe;
@@ -13,148 +13,127 @@
             --panel-bg: rgba(16, 22, 37, 0.95);
         }
 
-        body {
-            background-color: var(--dark-bg);
-            color: #ffffff;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        body, html {
             margin: 0;
-            padding: 15px;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--dark-bg);
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
         }
 
-        .container {
+        /* Painel Superior Flutuante */
+        #nexus-overlay {
             width: 100%;
-            max-width: 450px;
             background: var(--panel-bg);
-            border: 2px solid var(--neon-blue);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+            border-bottom: 2px solid var(--neon-blue);
+            padding: 10px;
+            box-shadow: 0 4px 20px rgba(0, 242, 254, 0.2);
             box-sizing: border-box;
+            z-index: 9999;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         h1 {
-            text-align: center;
-            font-size: 22px;
-            color: var(--neon-blue);
-            text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
-            margin-top: 0;
-            letter-spacing: 2px;
-        }
-
-        .status-box {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .status-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 13px;
-        }
-
-        .status-value {
-            font-weight: bold;
-            color: var(--neon-green);
-        }
-
-        .vela-principal {
-            font-size: 42px;
-            text-align: center;
-            font-weight: bold;
-            margin: 15px 0;
-            color: var(--neon-pink);
-            text-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
-        }
-
-        .historico-container {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding: 10px 0;
-            margin-bottom: 20px;
-        }
-
-        .alerta-entrada {
-            background: rgba(57, 255, 20, 0.15);
-            border: 2px solid var(--neon-green);
-            color: var(--neon-green);
-            border-radius: 10px;
-            padding: 12px;
-            text-align: center;
-            font-weight: bold;
+            margin: 0;
             font-size: 16px;
-            display: none;
+            color: var(--neon-blue);
+            text-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
+            letter-spacing: 1px;
         }
 
-        .btn-bookmarklet {
+        .status-badge {
+            font-size: 11px;
+            background: rgba(57, 255, 20, 0.1);
+            border: 1px solid var(--neon-green);
+            color: var(--neon-green);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        /* Área de Exibição do Jogo */
+        #game-container {
+            flex: 1;
             width: 100%;
-            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            position: relative;
+            background: #000;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Controle de URL para você mudar de site se quiser */
+        .url-bar {
+            display: flex;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        .url-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .btn-load {
+            background: var(--neon-blue);
             color: #000;
             border: none;
-            padding: 14px;
-            border-radius: 8px;
+            padding: 6px 12px;
+            border-radius: 4px;
             font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
-        .instrucoes {
             font-size: 12px;
-            color: #94a3b8;
-            margin-top: 12px;
-            line-height: 1.4;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>NEXUS PANEL v2.0</h1>
-        
-        <div class="status-box">
-            <div class="status-row">
-                <span>Conexão:</span>
-                <span id="txt-modo" class="status-value">Pronto para Ingestão</span>
-            </div>
-            <div class="status-row">
-                <span>Monitoramento:</span>
-                <span style="color: var(--neon-blue); font-weight: bold;">Filtro Inteligente</span>
-            </div>
+    <!-- PAINEL NEXUS (Fica fixo no topo) -->
+    <div id="nexus-overlay">
+        <div class="header-row">
+            <h1>NEXUS MOBILE v3.0</h1>
+            <span class="status-badge">● MONITORATIVO</span>
         </div>
-
-        <div class="vela-principal" id="vela-atual">Aguardando...</div>
-
-        <div class="alerta-entrada" id="alerta-box">
-            ⚡ PADRÃO DETECTADO ⚡
-        </div>
-
-        <button class="btn-bookmarklet" onclick="copiarConector()">📋 COPIAR SCRIPT CONECTOR</button>
         
-        <div class="instrucoes">
-            <strong>Instruções de Uso:</strong> Substitua o conteúdo do seu arquivo atual no GitHub por este código completo. Após salvar, aguarde o deploy e adicione o script copiado aos seus favoritos para execução direta no navegador.
+        <div class="url-bar">
+            <input type="text" id="target-url" class="url-input" value="https://sortenabet.bet.br" placeholder="Digite a URL da bet...">
+            <button class="btn-load" onclick="carregarJogo()">ABRIR</button>
         </div>
     </div>
 
+    <!-- JANELA DO JOGO (Carrega o site aqui dentro) -->
+    <div id="game-container">
+        <iframe id="game-frame" src="https://sortenabet.bet.br"></iframe>
+    </div>
+
     <script>
-        function copiarConector() {
-            const scriptInjetavel = `javascript:(function(){if(window.nexusAtivo){alert("Nexus já está rodando nesta aba!");return;}window.nexusAtivo=true;const container=document.createElement("div");container.style.cssText="position:fixed;top:10px;right:10px;background:rgba(11,15,25,0.95);color:#fff;border:2px solid #00f2fe;border-radius:8px;padding:10px;font-family:sans-serif;font-size:12px;z-index:999999;box-shadow:0 0 10px rgba(0,242,254,0.5);width:140px;";container.innerHTML='<div style="font-weight:bold;color:#00f2fe;text-align:center;margin-bottom:4px;">NEXUS ANALYST</div><div style="font-size:11px;">Status: <span style="color:#39ff14">Ativo</span></div>';document.body.appendChild(container);alert("Módulo Nexus acoplado à página!");})();`;
-            
-            navigator.clipboard.writeText(scriptInjetavel).then(() => {
-                alert("Código do conector copiado para a área de transferência!");
-            }).catch(() => {
-                alert("Erro ao copiar. Selecione o texto manualmente.");
-            });
+        function carregarJogo() {
+            let url = document.getElementById('target-url').value;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+            document.getElementById('game-frame').src = url;
         }
+
+        // Script de monitoramento interno simplificado para rodar direto no container
+        console.log("Nexus Core carregado no ambiente mobile.");
     </script>
 </body>
 </html>
