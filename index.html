@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Autonomous System v4.5</title>
+    <title>Nexus Panel v2.0 - Estável</title>
     <style>
         :root {
             --neon-blue: #00f2fe;
@@ -26,22 +26,56 @@
             padding: 8px 12px; box-sizing: border-box; z-index: 9999;
         }
 
-     .header-row { display: flex; justify-content: space-between; align-items: center; }
+      .header-row { display: flex; justify-content: space-between; align-items: center; }
         h1 { margin: 0; font-size: 14px; color: var(--neon-blue); letter-spacing: 1px; }
         
-     .history-box {
+      .history-box {
             display: flex; gap: 4px; background: rgba(0,0,0,0.3);
             padding: 4px 8px; border-radius: 4px; font-size: 11px;
         }
-     .hist-dot { width: 8px; height: 8px; border-radius: 50%; }
-     .dot-low { background: #ff4757; }
-     .dot-high { background: var(--neon-green); }
+      .hist-dot { width: 8px; height: 8px; border-radius: 50%; }
+      .dot-low { background: #ff4757; }
+      .dot-high { background: var(--neon-green); }
 
         #alert-box {
             background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255, 255, 255, 0.2);
             border-radius: 6px; padding: 10px; text-align: center;
             font-size: 13px; font-weight: bold; color: #aaa; margin-top: 6px;
             transition: all 0.3s ease;
+        }
+
+      .vela-principal {
+            font-size: 42px;
+            text-align: center;
+            font-weight: bold;
+            margin: 15px 0;
+            color: var(--neon-pink);
+            text-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+        }
+
+      .historico-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            scrollbar-width: none;
+        }
+
+      .historico-container::-webkit-scrollbar {
+            display: none;
+        }
+
+      .vela-badge {
+            background: #1e293b;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            min-width: 45px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
         }
 
         #game-container { flex: 1; width: 100%; background: #000; }
@@ -57,10 +91,17 @@
         <div class="header-row">
             <h1>NEXUS AUTO-ANALYSIS v4.5</h1>
             <div class="history-box" id="history-container">
-                <span style="color:#666; font-size:10px; margin-right:4px;">HISTÓRICO:</span>
+                <span style="color:#666; font-size:10px; margin-right:4px;">HIST:</span>
             </div>
         </div>
+        
         <div id="alert-box">📡 AGUARDANDO PRIMEIRAS VELAS DO CATALOGADOR...</div>
+        
+        <div class="vela-principal" id="vela-atual">0.00x</div>
+
+        <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">Mapeamento de Fluxo:</div>
+        <div class="historico-container" id="historico-lista">
+            </div>
     </div>
 
     <div id="game-container">
@@ -68,13 +109,16 @@
     </div>
 
     <script>
+        // Configuração do seu Realtime Database do Firebase com sua URL real
         const firebaseConfig = {
             databaseURL: "https://nexus-painel-c9f5e-default-rtdb.firebaseio.com/"
         };
         
+        // Inicializa a conexão
         firebase.initializeApp(firebaseConfig);
         const dbRef = firebase.database().ref("ultimas_velas");
 
+        // Escuta em tempo real usando child_added limitado ao último registro para economizar dados e bateria no Moto G9 Play
         dbRef.limitToLast(1).on("child_added", (snapshot) => {
             const dados = snapshot.val();
             if (dados) {
@@ -82,13 +126,14 @@
             }
         });
 
+        // Mapeador inteligente de dados recebidos do Webhook do TipMiner
         function extrairEProcessarVela(dados) {
             let valor = null;
             
             if (typeof dados === "number") {
                 valor = dados;
             } else if (typeof dados === "object") {
-                valor = dados.payout || dados.value || dados.multiplier || dados.valor || dados.resultado || (dados.data && (dados.data.payout || dados.data.multiplier));
+                valor = dados.valor || dados.payout || dados.value || dados.multiplier || dados.resultado;
             }
             
             if (valor!== null &&!isNaN(parseFloat(valor))) {
@@ -96,39 +141,63 @@
             }
         }
 
+        // Histórico em memória de execução local
         let historicoAutomatico =;
 
         function processarNovaVelaDaAPI(valorVela) {
             let tipo = (valorVela >= 2.00)? 'alta' : 'baixa';
             
-            if (historicoAutomatico.length >= 5) {
+            // Mantém as últimas 10 velas no histórico para análise estatística
+            if (historicoAutomatico.length >= 10) {
                 historicoAutomatico.shift();
             }
-            historicoAutomatico.push(tipo);
+            // Salva o objeto completo com valor e tipo
+            historicoAutomatico.push({ valor: valorVela, tipo: tipo });
 
             atualizarPainelVisual();
             executarAlgoritmoEstrategia();
         }
 
         function atualizarPainelVisual() {
-            const container = document.getElementById('history-container');
-            container.innerHTML = '<span style="color:#666; font-size:10px; margin-right:4px;">HIST:</span>';
+            // 1. Atualiza os pontinhos de histórico no topo
+            const topContainer = document.getElementById('history-container');
+            topContainer.innerHTML = '<span style="color:#666; font-size:10px; margin-right:4px;">HIST:</span>';
             historicoAutomatico.forEach(item => {
                 const dot = document.createElement('div');
-                dot.className = `hist-dot dot-${item}`;
-                container.appendChild(dot);
+                dot.className = `hist-dot dot-${item.tipo}`;
+                topContainer.appendChild(dot);
+            });
+
+            // 2. Atualiza a lista principal de Badges numéricas grandes
+            const mainLista = document.getElementById('historico-lista');
+            mainLista.innerHTML = '';
+            historicoAutomatico.forEach(item => {
+                const badge = document.createElement('div');
+                badge.className = 'vela-badge';
+                badge.innerText = item.valor.toFixed(2) + 'x';
+                badge.style.color = item.tipo === 'alta'? 'var(--neon-green)' : 'var(--neon-pink)';
+                badge.style.borderColor = item.tipo === 'alta'? 'var(--neon-green)' : 'var(--neon-pink)';
+                mainLista.appendChild(badge);
             });
         }
 
         function ejecutarAlgoritmoEstrategia() {
             const alertBox = document.getElementById('alert-box');
             
+            // Conta a sequência atual de velas baixas consecutivas
             let baixasSeguidas = 0;
             for(let i = historicoAutomatico.length - 1; i >= 0; i--) {
-                if(historicoAutomatico[i] === 'baixa') baixasSeguidas++;
+                if(historicoAutomatico[i].tipo === 'baixa') baixasSeguidas++;
                 else break;
             }
 
+            // Atualiza a grande vela central na tela
+            const ultimaVela = historicoAutomatico[historicoAutomatico.length - 1];
+            const vAtual = document.getElementById('vela-atual');
+            vAtual.innerText = ultimaVela.valor.toFixed(2) + 'x';
+            vAtual.style.color = ultimaVela.tipo === 'alta'? 'var(--neon-green)' : 'var(--neon-pink)';
+
+            // MOTOR DE DECISÃO AUTOMÁTICO (Roda direto no navegador do celular)
             if (baixasSeguidas === 3) {
                 alertBox.style.background = "rgba(241, 196, 15, 0.1)";
                 alertBox.style.border = "1px solid #f1c40f";
@@ -137,12 +206,12 @@
             } else if (baixasSeguidas >= 4) {
                 alertBox.style.background = "rgba(57, 255, 20, 0.15)";
                 alertBox.style.border = "1px solid var(--neon-green)";
-                alertBox.style.color = var(--neon-green);
+                alertBox.style.color = "var(--neon-green)";
                 alertBox.innerHTML = "🎯 ENTRADA CONFIRMADA: Padrão de quebra de sequência detectado. Buscar ≥ 2.00x!";
-            } else if (historicoAutomatico[historicoAutomatico.length - 1] === 'alta') {
+            } else if (ultimaVela.tipo === 'alta') {
                 alertBox.style.background = "rgba(0, 242, 254, 0.1)";
                 alertBox.style.border = "1px solid var(--neon-blue)";
-                alertBox.style.color = var(--neon-blue);
+                alertBox.style.color = "var(--neon-blue)";
                 alertBox.innerHTML = "✅ VELA ALTA REGISTRADA. Monitorando próximo ciclo de análise.";
             } else {
                 alertBox.style.background = "rgba(255, 255, 255, 0.03)";
