@@ -26,16 +26,16 @@
             padding: 8px 12px; box-sizing: border-box; z-index: 9999;
         }
 
-        .header-row { display: flex; justify-content: space-between; align-items: center; }
+     .header-row { display: flex; justify-content: space-between; align-items: center; }
         h1 { margin: 0; font-size: 14px; color: var(--neon-blue); letter-spacing: 1px; }
         
-        .history-box {
+     .history-box {
             display: flex; gap: 4px; background: rgba(0,0,0,0.3);
             padding: 4px 8px; border-radius: 4px; font-size: 11px;
         }
-        .hist-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .dot-low { background: #ff4757; }
-        .dot-high { background: var(--neon-green); }
+     .hist-dot { width: 8px; height: 8px; border-radius: 50%; }
+     .dot-low { background: #ff4757; }
+     .dot-high { background: var(--neon-green); }
 
         #alert-box {
             background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255, 255, 255, 0.2);
@@ -48,7 +48,6 @@
         iframe { width: 100%; height: 100%; border: none; }
     </style>
 
-    <!-- Script oficial do Firebase para conexões em tempo real no Mobile -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
@@ -69,30 +68,39 @@
     </div>
 
     <script>
-        // Configuração do seu Banco de Dados (Firebase) com a sua URL real
         const firebaseConfig = {
             databaseURL: "https://nexus-painel-c9f5e-default-rtdb.firebaseio.com/"
         };
         
-        // Inicializa a conexão com o Firebase
         firebase.initializeApp(firebaseConfig);
         const dbRef = firebase.database().ref("ultimas_velas");
-        
-        // Fica ouvindo o banco em tempo real. Sempre que o TipMiner mandar uma vela nova, essa função roda na hora!
-        dbRef.on("value", (snapshot) => {
+
+        dbRef.limitToLast(1).on("child_added", (snapshot) => {
             const dados = snapshot.val();
-            if(dados && dados.valor) {
-                processarNovaVelaDaAPI(parseFloat(dados.valor)); 
+            if (dados) {
+                extrairEProcessarVela(dados);
             }
         });
 
-        let historicoAutomatico = [];
+        function extrairEProcessarVela(dados) {
+            let valor = null;
+            
+            if (typeof dados === "number") {
+                valor = dados;
+            } else if (typeof dados === "object") {
+                valor = dados.payout || dados.value || dados.multiplier || dados.valor || dados.resultado || (dados.data && (dados.data.payout || dados.data.multiplier));
+            }
+            
+            if (valor!== null &&!isNaN(parseFloat(valor))) {
+                processarNovaVelaDaAPI(parseFloat(valor));
+            }
+        }
+
+        let historicoAutomatico =;
 
         function processarNovaVelaDaAPI(valorVela) {
-            // Define se a vela é alta (>= 2.00x) ou baixa (< 2.00x)
-            let tipo = (valorVela >= 2.00) ? 'alta' : 'baixa';
+            let tipo = (valorVela >= 2.00)? 'alta' : 'baixa';
             
-            // Mantém apenas as últimas 5 velas no painel visual para não poluir a tela do celular
             if (historicoAutomatico.length >= 5) {
                 historicoAutomatico.shift();
             }
@@ -115,14 +123,12 @@
         function ejecutarAlgoritmoEstrategia() {
             const alertBox = document.getElementById('alert-box');
             
-            // Conta a sequência atual de velas baixas consecutivas
             let baixasSeguidas = 0;
             for(let i = historicoAutomatico.length - 1; i >= 0; i--) {
                 if(historicoAutomatico[i] === 'baixa') baixasSeguidas++;
                 else break;
             }
 
-            // MOTOR DE DECISÃO AUTOMÁTICO (Roda direto no navegador do seu celular)
             if (baixasSeguidas === 3) {
                 alertBox.style.background = "rgba(241, 196, 15, 0.1)";
                 alertBox.style.border = "1px solid #f1c40f";
